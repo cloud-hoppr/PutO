@@ -1,16 +1,160 @@
-<script>
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анти-Прокрастинация Тамагочи</title>
+    <!-- Подключаем официальный скрипт Telegram Mini Apps -->
+    <script src="https://telegram.org"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--tg-theme-background-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
 
-    function startTask() {
-        const taskText = document.getElementById('task-input').value.trim();
-        if(!taskText) return alert("Введите задачу!");
+        .container {
+            max-width: 400px;
+            width: 100%;
+        }
 
-        tg.sendData(JSON.stringify({ action: "split_task", task: taskText }));
-    }
+        .pet-avatar {
+            font-size: 80px;
+            margin: 20px 0;
+            transition: transform 0.3s;
+        }
 
-    function completeStep() {
-        tg.sendData(JSON.stringify({ action: "complete_step" }));
-    }
-</script>
+        /* Анимация плавного покачивания, чтобы тамагочи выглядел живым */
+        .alive {
+            animation: wobble 2s infinite ease-in-out;
+        }
+        @keyframes wobble {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .stat-bar {
+            width: 100%;
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+            height: 20px;
+            position: relative;
+        }
+
+        .fill-xp {
+            width: 0%; /* На старте 0 */
+            background-color: #ff9800; /* Оранжевый цвет для опыта */
+            height: 100%;
+            transition: width 0.5s;
+        }
+
+        .fill-mood {
+            width: 50%; /* На старте 50% */
+            background-color: #4caf50; /* Зеленый цвет для настроения */
+            height: 100%;
+            transition: width 0.5s;
+        }
+
+        .bar-label {
+            position: absolute;
+            width: 100%;
+            top: 0; left: 0;
+            font-size: 12px;
+            line-height: 20px;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .input-group {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        input {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            outline: none;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px;
+            background-color: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>🦊 Мой Напарник</h2>
+
+        <!-- Анимированный эмодзи-тамагочи -->
+        <div id="pet" class="pet-avatar alive">😐</div>
+
+        <!-- Шкала Опыта (XP) -->
+        <div class="stat-bar">
+            <div id="xp-bar" class="fill-xp"></div>
+            <div class="bar-label">Опыт (XP): <span id="xp-text">0</span>%</div>
+        </div>
+
+        <!-- Шкала Настроения -->
+        <div class="stat-bar">
+            <div id="mood-bar" class="fill-mood"></div>
+            <div class="bar-label">Настроение: <span id="mood-text">50</span>%</div>
+        </div>
+
+        <!-- Блок ввода глобальной задачи -->
+        <div class="input-group">
+            <input type="text" id="task-input" placeholder="Какую задачу нужно раздробить?">
+            <button onclick="startTask()">Разбить с ИИ</button>
+            <button style="background-color: #4caf50; margin-top: 10px;" onclick="completeStep()">Выполнить микрошаг</button>
+        </div>
+    </div>
+
+    <script>
+        // Инициализируем Telegram WebApp API
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand(); // Разворачиваем приложение на максимум
+
+        function startTask() {
+            const taskInput = document.getElementById('task-input');
+            const taskText = taskInput.value.trim();
+
+            if (!taskText) {
+                alert("Введите задачу!");
+                return;
+            }
+
+            // Меняем эмоцию на "думающего" персонажа
+            document.getElementById('pet').innerText = "🤔";
+
+            // 🔥 МГНОВЕННО ОТПРАВЛЯЕМ ДАННЫЕ В ЧАТ БОТУ
+            tg.sendData(JSON.stringify({ action: "split_task", task: taskText }));
+        }
+
+        function completeStep() {
+            // 🔥 МГНОВЕННО ОТПРАВЛЯЕМ СИГНАЛ БОТУ, ЧТО МИКРОШАГ ВЫПОЛНЕН
+            tg.sendData(JSON.stringify({ action: "complete_step" }));
+        }
+    </script>
+</body>
+</html>
