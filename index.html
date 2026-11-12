@@ -432,9 +432,7 @@
       busy: false
     };
 
-    // Все картинки лисёнка лежат в папке images.
-    // Сейчас указан формат PNG. Если у твоих файлов WebP, поменяй "png" на "webp".
-    const FOX_IMAGE_EXTENSION = "png";
+    const FOX_IMAGE_EXTENSION = "webp";
 
     const foxStates = {
       idle: {
@@ -495,7 +493,6 @@
       img.style.display = "block";
       $("pet-fallback").style.display = "none";
 
-      // Сначала пробуем выбранный формат. При ошибке показываем запасного лисёнка.
       img.onerror = () => {
         img.onerror = null;
         img.style.display = "none";
@@ -583,7 +580,7 @@
       return data;
     }
 
-    // Демонстрационный план нужен только до подключения настоящего backend.
+    // Демонстрационный план
     function createDemoPlan(task) {
       return [
         { title: `Открой всё необходимое для задачи «${task}»`, minutes: 2 },
