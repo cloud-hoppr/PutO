@@ -68,10 +68,13 @@ async def create_task(request):
 
         steps = await generate_task_plan(task)
 
+        old_user = users.get(user_id, {})
+
         users[user_id] = {
             "steps": steps,
             "current_index": 0,
-            "xp": users.get(user_id, {}).get("xp", 0)
+            "xp": old_user.get("xp", 0),
+            "mood": old_user.get("mood", 50)
         }
 
         return web.json_response({
@@ -81,7 +84,7 @@ async def create_task(request):
             "total_steps": len(steps),
             "profile": {
                 "xp": users[user_id]["xp"],
-                "mood": 50
+                "mood": users[user_id]["mood"]
             }
         })
 
@@ -110,6 +113,7 @@ async def complete_step(request):
 
     user["current_index"] = result["next_index"]
     user["xp"] += 10
+    user["mood"] = min(100, user.get("mood", 50) + 10)
 
     return web.json_response({
         "completed": result["completed"],
@@ -118,7 +122,7 @@ async def complete_step(request):
         "total_steps": len(user["steps"]),
         "profile": {
             "xp": user["xp"],
-            "mood": 50
+            "mood": user["mood"]
         }
     })
 

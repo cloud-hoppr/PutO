@@ -575,17 +575,6 @@
       return data;
     }
 
-    // Демонстрационный план
-    function createDemoPlan(task) {
-      return [
-        { title: `Открой всё необходимое для задачи «${task}»`, minutes: 2 },
-        { title: "Подготовь рабочее место и убери лишнее", minutes: 2 },
-        { title: "Определи самый маленький следующий результат", minutes: 3 },
-        { title: "Сделай первую небольшую часть задачи", minutes: 7 },
-        { title: "Проверь, что получилось, и продолжи", minutes: 10 }
-      ];
-    }
-
     $("task-input").addEventListener("focus", () => {
       if (!state.busy && !state.taskActive) setFox("questioning");
     });
@@ -619,12 +608,6 @@
           updateStats(data.profile || {});
           if (!firstStep) throw new Error("Сервер не вернул первый микрошаг.");
           renderStep(firstStep, data.current_index ?? 0, data.total_steps ?? state.steps.length);
-        } else {
-          // Локальный preview: здесь нет настоящего вызова Groq и сохранения данных.
-          state.steps = createDemoPlan(task);
-          state.currentIndex = 0;
-          renderStep(state.steps[0], 0, state.steps.length);
-          showMessage("Демонстрационный режим: сейчас показан пример плана. После подключения Render задачи будет разбивать Groq.");
         }
       } catch (error) {
         setFox("sad");
@@ -697,8 +680,6 @@
       setFox("idle");
     });
 
-    // При открытии показываем начальное состояние. Если картинок пока нет,
-    // автоматически появится временный эмодзи-лисёнок.
     setFox("idle");
     updateStats();
   </script>
