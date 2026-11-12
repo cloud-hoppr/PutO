@@ -426,22 +426,72 @@
       busy: false
     };
 
+    // Все картинки лисёнка лежат в папке images.
+    // Сейчас указан формат PNG. Если у твоих файлов WebP, поменяй "png" на "webp".
+    const FOX_IMAGE_EXTENSION = "png";
+
     const foxStates = {
-      idle: ["images/fox-idle.webp", "Я рядом!", "Не обязательно сделать всё сразу. Достаточно начать."],
-      thinking: ["images/fox-thinking.webp", "Думаю над задачей…", "Сейчас разобьём её на небольшие действия."],
-      working: ["images/fox-working.webp", "У тебя получится!", "Сосредоточься только на текущем микрошаге."],
-      happy: ["images/fox-happy.webp", "Ура! Отличная работа!", "Ещё один шаг позади. Я тобой горжусь!"],
-      sad: ["images/fox-sad.webp", "Ничего страшного", "Можно сделать паузу и вернуться, когда будешь готов."]
+      idle: {
+        file: "fox-idle",
+        title: "Я рядом!",
+        caption: "Не обязательно сделать всё сразу. Достаточно начать."
+      },
+      thinking: {
+        file: "fox-thinking",
+        title: "Думаю над задачей…",
+        caption: "Сейчас разобьём её на небольшие действия."
+      },
+      questioning: {
+        file: "fox-questioning",
+        title: "С чего начнём?",
+        caption: "Давай спокойно разберёмся, что нужно сделать."
+      },
+      working: {
+        file: "fox-working",
+        title: "Время действовать!",
+        caption: "Сосредоточься только на текущем микрошаге."
+      },
+      happy: {
+        file: "fox-happy",
+        title: "Отличная работа!",
+        caption: "Ещё один шаг позади. Я тобой горжусь!"
+      },
+      reallyhappy: {
+        file: "fox-reallyhappy",
+        title: "НЕВЕРОЯТНО! 🎉",
+        caption: "Ты завершил всю задачу. Это большая победа!"
+      },
+      sad: {
+        file: "fox-sad",
+        title: "Ничего страшного",
+        caption: "Можно сделать паузу и вернуться, когда будешь готов."
+      },
+      sleepy: {
+        file: "fox-sleepy",
+        title: "Немного устал?",
+        caption: "Передохни. Отдых — тоже важная часть пути."
+      },
+      surprised: {
+        file: "fox-surprised",
+        title: "Вот это прогресс!",
+        caption: "Ты уже сделал больше, чем кажется."
+      }
     };
 
     function setFox(mood) {
       const config = foxStates[mood] || foxStates.idle;
       const img = $("pet-image");
-      $("pet-status").textContent = config[1];
-      $("pet-caption").textContent = config[2];
+
+      $("pet-status").textContent = config.title;
+      $("pet-caption").textContent = config.caption;
 
       img.classList.add("pop");
+      img.style.display = "block";
+      $("pet-fallback").style.display = "none";
+
+      // Сначала пробуем выбранный формат. При ошибке показываем запасного лисёнка.
       img.onerror = () => {
+        img.onerror = null;
         img.style.display = "none";
         $("pet-fallback").style.display = "block";
       };
@@ -449,7 +499,7 @@
         img.style.display = "block";
         $("pet-fallback").style.display = "none";
       };
-      img.src = config[0];
+      img.src = `images/${config.file}.${FOX_IMAGE_EXTENSION}`;
 
       setTimeout(() => img.classList.remove("pop"), 280);
     }
@@ -493,7 +543,7 @@
         state.taskActive = false;
         $("step-card").classList.remove("visible");
         $("new-task-button").classList.remove("hidden");
-        setFox("happy");
+        setFox("reallyhappy");
         showMessage("🎉 Все шаги выполнены! Ты справился с задачей. Отличная работа!");
         return;
       }
@@ -537,6 +587,16 @@
         { title: "Проверь, что получилось, и продолжи", minutes: 10 }
       ];
     }
+
+    $("task-input").addEventListener("focus", () => {
+      if (!state.busy && !state.taskActive) setFox("questioning");
+    });
+
+    $("task-input").addEventListener("blur", () => {
+      if (!state.busy && !state.taskActive && !$("task-input").value.trim()) {
+        setFox("idle");
+      }
+    });
 
     $("task-form").addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -600,9 +660,15 @@
             showMessage("Шаг выполнен! Получай следующий маленький шаг 🧡");
           }
         } else {
+          const previousLevel = Math.floor(state.xp / 100) + 1;
           state.xp += 10;
           state.mood = Math.min(100, state.mood + 5);
           updateStats();
+          if (Math.floor(state.xp / 100) + 1 > previousLevel) {
+            setFox("surprised");
+          } else {
+            setFox("happy");
+          }
           const nextIndex = state.currentIndex + 1;
           if (nextIndex >= state.steps.length) {
             renderStep(null, 0, 0);
