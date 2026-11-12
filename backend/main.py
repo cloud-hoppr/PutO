@@ -47,26 +47,6 @@ async def cmd_start(message: types.Message):
         reply_markup=keyboard
     )
 
-
-@dp.message(lambda message: message.web_app_data)
-async def handle_web_app_data(message: types.Message):
-    user = get_user(message.from_user.id)
-    data = json.loads(message.web_app_data.data)
-
-    if data.get("action") == "split_task":
-        task_title = data.get("task")
-        #await message.answer(f"🤔 Напарник разбивает задачу «{task_title}»...")
-
-        # try:
-        #     steps = await generate_task_plan(task_title)
-        # 
-        #     user["steps"] = steps
-        #     user["current_index"] = 0
-        #
-        #     step = get_current_step(user["steps"], user["current_index"])
-
-
-
 async def main():
     print("🤖 Запуск бота...")
     await dp.start_polling(bot)
