@@ -1,160 +1,642 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Анти-Прокрастинация Тамагочи</title>
-    <!-- Подключаем официальный скрипт Telegram Mini Apps -->
-    <script src="https://telegram.org"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: var(--tg-theme-background-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fff8f0">
+  <title>Мой Напарник — антипрокрастинатор</title>
 
-        .container {
-            max-width: 400px;
-            width: 100%;
-        }
+  <!-- Официальная библиотека Telegram Mini Apps -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-        .pet-avatar {
-            font-size: 80px;
-            margin: 20px 0;
-            transition: transform 0.3s;
-        }
+  <style>
+    :root {
+      --bg: #fff8f0;
+      --card: #ffffff;
+      --text: #292522;
+      --muted: #8b8179;
+      --orange: #ff8a24;
+      --orange-dark: #ed7411;
+      --green: #299b62;
+      --line: #f0e6dc;
+      --track: #f2ece6;
+      --shadow: 0 10px 30px rgba(83, 54, 27, .07);
+      --tg-bg: var(--tg-theme-bg-color, var(--bg));
+      --tg-text: var(--tg-theme-text-color, var(--text));
+    }
 
-        /* Анимация плавного покачивания, чтобы тамагочи выглядел живым */
-        .alive {
-            animation: wobble 2s infinite ease-in-out;
-        }
-        @keyframes wobble {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
+    * { box-sizing: border-box; }
 
-        .stat-bar {
-            width: 100%;
-            background-color: rgba(0,0,0,0.1);
-            border-radius: 10px;
-            margin: 10px 0;
-            overflow: hidden;
-            height: 20px;
-            position: relative;
-        }
+    body {
+      margin: 0;
+      padding: 18px 16px calc(28px + env(safe-area-inset-bottom));
+      min-height: 100vh;
+      background: var(--tg-bg);
+      color: var(--tg-text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
 
-        .fill-xp {
-            width: 0%; /* На старте 0 */
-            background-color: #ff9800; /* Оранжевый цвет для опыта */
-            height: 100%;
-            transition: width 0.5s;
-        }
+    button, input { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
 
-        .fill-mood {
-            width: 50%; /* На старте 50% */
-            background-color: #4caf50; /* Зеленый цвет для настроения */
-            height: 100%;
-            transition: width 0.5s;
-        }
+    .app {
+      width: 100%;
+      max-width: 460px;
+      margin: 0 auto;
+    }
 
-        .bar-label {
-            position: absolute;
-            width: 100%;
-            top: 0; left: 0;
-            font-size: 12px;
-            line-height: 20px;
-            color: #000;
-            font-weight: bold;
-        }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 4px 2px 16px;
+    }
 
-        .input-group {
-            margin: 20px 0;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: 100%;
-        }
+    .brand {
+      margin: 0;
+      font-size: 23px;
+      font-weight: 850;
+      letter-spacing: -.7px;
+    }
 
-        input {
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            outline: none;
-            font-size: 16px;
-        }
+    .brand span { color: var(--orange-dark); }
 
-        button {
-            padding: 12px;
-            background-color: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-        }
-    </style>
+    .level-pill {
+      padding: 8px 11px;
+      border-radius: 999px;
+      background: #fff0df;
+      color: #a9570b;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .pet-card {
+      position: relative;
+      overflow: hidden;
+      padding: 18px 16px 16px;
+      border: 1px solid var(--line);
+      border-radius: 25px;
+      background: linear-gradient(145deg, #fff 0%, #fff5e9 100%);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .pet-glow {
+      position: absolute;
+      width: 210px;
+      height: 180px;
+      left: 50%;
+      top: 28px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: rgba(255, 174, 91, .13);
+      filter: blur(12px);
+      pointer-events: none;
+    }
+
+    .pet-image-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 210px;
+      height: 210px;
+      max-width: 75vw;
+      margin: 0 auto 5px;
+    }
+
+    #pet-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transition: transform .25s ease, opacity .2s ease;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    #pet-image.pop { transform: scale(1.07) rotate(-3deg); }
+
+    .pet-fallback {
+      display: none;
+      font-size: 112px;
+      line-height: 1;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { translate: 0 0; }
+      50% { translate: 0 -7px; }
+    }
+
+    .pet-status {
+      margin: 3px 0 4px;
+      font-size: 20px;
+      font-weight: 850;
+    }
+
+    .pet-caption {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 11px;
+      margin: 14px 0;
+    }
+
+    .stat-card {
+      padding: 13px 13px 12px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: var(--card);
+    }
+
+    .stat-heading {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 9px;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .stat-value { color: var(--muted); font-weight: 700; }
+
+    .bar {
+      height: 9px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: var(--track);
+    }
+
+    .bar-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      transition: width .45s ease;
+    }
+
+    #xp-fill { background: linear-gradient(90deg, #ffb347, #ff851b); }
+    #mood-fill { background: linear-gradient(90deg, #8bd66c, #27a765); }
+
+    .panel {
+      margin-top: 14px;
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: 21px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 850;
+    }
+
+    .task-input {
+      display: block;
+      width: 100%;
+      min-height: 49px;
+      padding: 13px 14px;
+      border: 1px solid #e9ded4;
+      border-radius: 13px;
+      outline: none;
+      background: #fffdfa;
+      color: var(--text);
+      font-size: 15px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .task-input:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(255, 138, 36, .12);
+    }
+
+    .task-input::placeholder { color: #aaa098; }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 49px;
+      margin-top: 10px;
+      padding: 12px 15px;
+      border: 0;
+      border-radius: 13px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .12s, filter .2s, opacity .2s;
+    }
+
+    .btn:active:not(:disabled) { transform: scale(.985); }
+    .btn:disabled { cursor: not-allowed; opacity: .52; }
+    .btn-primary { background: linear-gradient(135deg, #ff9d3d, #f47b18); }
+    .btn-success { background: linear-gradient(135deg, #35ad70, #218d56); }
+    .btn-secondary {
+      color: #a65a17;
+      background: #fff0df;
+    }
+
+    .step-card {
+      display: none;
+      margin-top: 14px;
+      padding: 16px;
+      border: 1px solid #f3d8ba;
+      border-radius: 17px;
+      background: #fff9f1;
+    }
+
+    .step-card.visible { display: block; }
+
+    .step-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 11px;
+    }
+
+    .step-badge {
+      padding: 6px 9px;
+      border-radius: 999px;
+      background: #ffecd8;
+      color: #a85b17;
+      font-size: 11px;
+      font-weight: 850;
+    }
+
+    .step-time { color: var(--muted); font-size: 12px; }
+
+    .step-title {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.4;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .step-hint {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .message {
+      display: none;
+      margin-top: 12px;
+      padding: 11px 12px;
+      border-radius: 12px;
+      background: #f5f1ec;
+      color: #655b53;
+      font-size: 13px;
+      line-height: 1.45;
+      text-align: left;
+    }
+
+    .message.visible { display: block; }
+    .message.error { background: #fff0ef; color: #b33c32; }
+
+    .footer-note {
+      margin: 16px 8px 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
 </head>
+
 <body>
+  <main class="app">
+    <header class="topbar">
+      <h1 class="brand">Мой <span>Напарник</span></h1>
+      <div class="level-pill" id="level-pill">🌱 Новичок</div>
+    </header>
 
-    <div class="container">
-        <h2>🦊 Мой Напарник</h2>
+    <section class="pet-card" aria-label="Твой виртуальный напарник">
+      <div class="pet-glow"></div>
+      <div class="pet-image-wrap">
+        <img id="pet-image" src="images/fox-idle.webp" alt="Лисёнок-напарник">
+        <div id="pet-fallback" class="pet-fallback" aria-hidden="true">🦊</div>
+      </div>
+      <p class="pet-status" id="pet-status">Я рядом!</p>
+      <p class="pet-caption" id="pet-caption">Не обязательно сделать всё сразу. Достаточно начать.</p>
+    </section>
 
-        <!-- Анимированный эмодзи-тамагочи -->
-        <div id="pet" class="pet-avatar alive">😐</div>
-
-        <!-- Шкала Опыта (XP) -->
-        <div class="stat-bar">
-            <div id="xp-bar" class="fill-xp"></div>
-            <div class="bar-label">Опыт (XP): <span id="xp-text">0</span>%</div>
+    <section class="stats" aria-label="Показатели напарника">
+      <div class="stat-card">
+        <div class="stat-heading">
+          <span>⭐ Опыт</span>
+          <span class="stat-value" id="xp-text">0 XP</span>
         </div>
-
-        <!-- Шкала Настроения -->
-        <div class="stat-bar">
-            <div id="mood-bar" class="fill-mood"></div>
-            <div class="bar-label">Настроение: <span id="mood-text">50</span>%</div>
+        <div class="bar"><div class="bar-fill" id="xp-fill"></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-heading">
+          <span>💚 Настроение</span>
+          <span class="stat-value" id="mood-text">50%</span>
         </div>
+        <div class="bar"><div class="bar-fill" id="mood-fill" style="width:50%"></div></div>
+      </div>
+    </section>
 
-        <!-- Блок ввода глобальной задачи -->
-        <div class="input-group">
-            <input type="text" id="task-input" placeholder="Какую задачу нужно раздробить?">
-            <button onclick="startTask()">Разбить с ИИ</button>
-            <button style="background-color: #4caf50; margin-top: 10px;" onclick="completeStep()">Выполнить микрошаг</button>
+    <section class="panel">
+      <h2 class="section-title">🎯 Над чем поработаем?</h2>
+      <form id="task-form">
+        <input
+          class="task-input"
+          id="task-input"
+          type="text"
+          maxlength="500"
+          placeholder="Например: подготовиться к экзамену"
+          autocomplete="off"
+          required
+        >
+        <button class="btn btn-primary" id="create-button" type="submit">
+          ✨ Разбить задачу с ИИ
+        </button>
+      </form>
+
+      <div class="step-card" id="step-card">
+        <div class="step-top">
+          <span class="step-badge" id="step-counter">ШАГ 1</span>
+          <span class="step-time" id="step-time">⏱ 2 минуты</span>
         </div>
-    </div>
+        <h3 class="step-title" id="step-title">Твой первый микрошаг появится здесь</h3>
+        <p class="step-hint">Не торопись. Выполни только это действие — остальное подождёт.</p>
+        <button class="btn btn-success" id="complete-button" type="button">
+          ✓ Я выполнил этот шаг
+        </button>
+      </div>
 
-    <script>
-        // Инициализируем Telegram WebApp API
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand(); // Разворачиваем приложение на максимум
+      <div class="message" id="message" role="status" aria-live="polite"></div>
+      <button class="btn btn-secondary hidden" id="new-task-button" type="button">
+        ＋ Поставить новую задачу
+      </button>
+    </section>
 
-        function startTask() {
-            const taskInput = document.getElementById('task-input');
-            const taskText = taskInput.value.trim();
+    <p class="footer-note">Маленькие действия каждый день превращаются в большие результаты 🧡</p>
+  </main>
 
-            if (!taskText) {
-                alert("Введите задачу!");
-                return;
-            }
+  <script>
+    /*
+      После публикации backend на Render вставь сюда его адрес.
+      Например: https://my-companion-api.onrender.com
+      Пока адрес пустой, приложение работает в демонстрационном режиме.
+    */
+    const API_BASE = "";
 
-            // Меняем эмоцию на "думающего" персонажа
-            document.getElementById('pet').innerText = "🤔";
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      try { tg.setHeaderColor("#fff8f0"); } catch (_) {}
+      try { tg.setBackgroundColor("#fff8f0"); } catch (_) {}
+    }
 
-            // 🔥 МГНОВЕННО ОТПРАВЛЯЕМ ДАННЫЕ В ЧАТ БОТУ
-            tg.sendData(JSON.stringify({ action: "split_task", task: taskText }));
+    const $ = (id) => document.getElementById(id);
+
+    const state = {
+      xp: 0,
+      mood: 50,
+      steps: [],
+      currentIndex: 0,
+      taskActive: false,
+      busy: false
+    };
+
+    const foxStates = {
+      idle: ["images/fox-idle.webp", "Я рядом!", "Не обязательно сделать всё сразу. Достаточно начать."],
+      thinking: ["images/fox-thinking.webp", "Думаю над задачей…", "Сейчас разобьём её на небольшие действия."],
+      working: ["images/fox-working.webp", "У тебя получится!", "Сосредоточься только на текущем микрошаге."],
+      happy: ["images/fox-happy.webp", "Ура! Отличная работа!", "Ещё один шаг позади. Я тобой горжусь!"],
+      sad: ["images/fox-sad.webp", "Ничего страшного", "Можно сделать паузу и вернуться, когда будешь готов."]
+    };
+
+    function setFox(mood) {
+      const config = foxStates[mood] || foxStates.idle;
+      const img = $("pet-image");
+      $("pet-status").textContent = config[1];
+      $("pet-caption").textContent = config[2];
+
+      img.classList.add("pop");
+      img.onerror = () => {
+        img.style.display = "none";
+        $("pet-fallback").style.display = "block";
+      };
+      img.onload = () => {
+        img.style.display = "block";
+        $("pet-fallback").style.display = "none";
+      };
+      img.src = config[0];
+
+      setTimeout(() => img.classList.remove("pop"), 280);
+    }
+
+    function showMessage(text, isError = false) {
+      const box = $("message");
+      box.textContent = text;
+      box.className = "message visible" + (isError ? " error" : "");
+    }
+
+    function hideMessage() {
+      $("message").className = "message";
+      $("message").textContent = "";
+    }
+
+    function setBusy(value, button, busyText, normalText) {
+      state.busy = value;
+      button.disabled = value;
+      button.textContent = value ? busyText : normalText;
+    }
+
+    function updateStats(profile = {}) {
+      if (Number.isFinite(profile.xp)) state.xp = profile.xp;
+      if (Number.isFinite(profile.mood)) state.mood = profile.mood;
+
+      const xpProgress = ((state.xp % 100) + 100) % 100;
+      $("xp-text").textContent = state.xp + " XP";
+      $("xp-fill").style.width = xpProgress + "%";
+
+      const mood = Math.max(0, Math.min(100, state.mood));
+      $("mood-text").textContent = mood + "%";
+      $("mood-fill").style.width = mood + "%";
+
+      const level = Math.floor(state.xp / 100) + 1;
+      const names = ["🌱 Новичок", "🌿 Старается", "🌳 Упорный", "🏆 Мастер"];
+      $("level-pill").textContent = names[Math.min(level - 1, names.length - 1)];
+    }
+
+    function renderStep(step, index, total) {
+      if (!step) {
+        state.taskActive = false;
+        $("step-card").classList.remove("visible");
+        $("new-task-button").classList.remove("hidden");
+        setFox("happy");
+        showMessage("🎉 Все шаги выполнены! Ты справился с задачей. Отличная работа!");
+        return;
+      }
+
+      state.taskActive = true;
+      state.currentIndex = index;
+      $("step-card").classList.add("visible");
+      $("new-task-button").classList.add("hidden");
+      $("step-counter").textContent = `ШАГ ${index + 1} ИЗ ${total}`;
+      $("step-time").textContent = `⏱ ${step.minutes || 2} мин.`;
+      $("step-title").textContent = step.title;
+      $("complete-button").disabled = false;
+      setFox("working");
+    }
+
+    async function apiRequest(path, body = {}) {
+      const initData = tg?.initData || "";
+      const response = await fetch(API_BASE + path, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Telegram-Init-Data": initData
+        },
+        body: JSON.stringify(body)
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.detail || data.error || `Ошибка сервера: ${response.status}`);
+      }
+      return data;
+    }
+
+    // Демонстрационный план нужен только до подключения настоящего backend.
+    function createDemoPlan(task) {
+      return [
+        { title: `Открой всё необходимое для задачи «${task}»`, minutes: 2 },
+        { title: "Подготовь рабочее место и убери лишнее", minutes: 2 },
+        { title: "Определи самый маленький следующий результат", minutes: 3 },
+        { title: "Сделай первую небольшую часть задачи", minutes: 7 },
+        { title: "Проверь, что получилось, и продолжи", minutes: 10 }
+      ];
+    }
+
+    $("task-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (state.busy) return;
+
+      const task = $("task-input").value.trim();
+      if (!task) {
+        showMessage("Сначала напиши, какую задачу нужно выполнить.", true);
+        return;
+      }
+
+      hideMessage();
+      setBusy(true, $("create-button"), "⏳ Создаю план…", "✨ Разбить задачу с ИИ");
+      setFox("thinking");
+
+      try {
+        let data;
+        if (API_BASE) {
+          data = await apiRequest("/api/tasks", { task });
+          state.steps = data.steps || [];
+          const firstStep = data.current_step || state.steps[0];
+          updateStats(data.profile || {});
+          if (!firstStep) throw new Error("Сервер не вернул первый микрошаг.");
+          renderStep(firstStep, data.current_index ?? 0, data.total_steps ?? state.steps.length);
+        } else {
+          // Локальный preview: здесь нет настоящего вызова Groq и сохранения данных.
+          state.steps = createDemoPlan(task);
+          state.currentIndex = 0;
+          renderStep(state.steps[0], 0, state.steps.length);
+          showMessage("Демонстрационный режим: сейчас показан пример плана. После подключения Render задачи будет разбивать Groq.");
         }
+      } catch (error) {
+        setFox("sad");
+        showMessage(error.message || "Не удалось создать план. Попробуй ещё раз.", true);
+      } finally {
+        setBusy(false, $("create-button"), "⏳ Создаю план…", "✨ Разбить задачу с ИИ");
+      }
+    });
 
-        function completeStep() {
-            // 🔥 МГНОВЕННО ОТПРАВЛЯЕМ СИГНАЛ БОТУ, ЧТО МИКРОШАГ ВЫПОЛНЕН
-            tg.sendData(JSON.stringify({ action: "complete_step" }));
+    $("complete-button").addEventListener("click", async () => {
+      if (state.busy || !state.taskActive) return;
+
+      hideMessage();
+      setBusy(true, $("complete-button"), "⏳ Засчитываю…", "✓ Я выполнил этот шаг");
+      setFox("happy");
+
+      try {
+        if (API_BASE) {
+          const data = await apiRequest("/api/steps/complete", {});
+          updateStats(data.profile || {});
+          if (data.completed) {
+            renderStep(null, 0, 0);
+          } else {
+            const nextStep = data.current_step || data.next_step;
+            if (!nextStep) throw new Error("Сервер не вернул следующий микрошаг.");
+            renderStep(
+              nextStep,
+              data.current_index ?? state.currentIndex + 1,
+              data.total_steps ?? state.steps.length
+            );
+            showMessage("Шаг выполнен! Получай следующий маленький шаг 🧡");
+          }
+        } else {
+          state.xp += 10;
+          state.mood = Math.min(100, state.mood + 5);
+          updateStats();
+          const nextIndex = state.currentIndex + 1;
+          if (nextIndex >= state.steps.length) {
+            renderStep(null, 0, 0);
+          } else {
+            renderStep(state.steps[nextIndex], nextIndex, state.steps.length);
+            showMessage("Шаг выполнен! В демонстрационном режиме начислено 10 XP.");
+          }
         }
-    </script>
+      } catch (error) {
+        setFox("sad");
+        showMessage(error.message || "Не удалось засчитать шаг. Попробуй ещё раз.", true);
+      } finally {
+        $("complete-button").disabled = !state.taskActive;
+        $("complete-button").textContent = "✓ Я выполнил этот шаг";
+        state.busy = false;
+      }
+    });
+
+    $("new-task-button").addEventListener("click", () => {
+      state.steps = [];
+      state.currentIndex = 0;
+      state.taskActive = false;
+      $("step-card").classList.remove("visible");
+      $("new-task-button").classList.add("hidden");
+      $("task-input").value = "";
+      $("task-input").focus();
+      hideMessage();
+      setFox("idle");
+    });
+
+    // При открытии показываем начальное состояние. Если картинок пока нет,
+    // автоматически появится временный эмодзи-лисёнок.
+    setFox("idle");
+    updateStats();
+  </script>
 </body>
 </html>
